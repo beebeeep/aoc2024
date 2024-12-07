@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+itertools = "0.13.0"
+permutohedron = "0.2.4"
 rand = "0.8.5"
 regex = "1.11.1"
 
@@ -28,7 +30,10 @@ path = "src/day4/main.rs"
 name = "day5"
 path = "src/day5/main.rs"
 
-
 [[bin]]
 name = "day6"
 path = "src/day6/main.rs"
+
+[[bin]]
+name = "day7"
+path = "src/day7/main.rs"
