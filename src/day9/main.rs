@@ -32,7 +32,6 @@ fn defragment(files: &mut Vec<File>, voids: &mut Vec<File>) {
             break;
         }
     }
-    // return (files, voids);
 }
 
 fn compact(disk: &mut Vec<Option<i32>>) {
