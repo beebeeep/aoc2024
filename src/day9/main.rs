@@ -7,69 +7,7 @@ struct File {
     size: usize,
 }
 
-fn get_files(disk: &Vec<Option<i32>>) -> (Vec<File>, Vec<File>) {
-    let mut files: Vec<File> = Vec::new();
-    let mut voids: Vec<File> = Vec::new();
-    let mut file: Option<File> = None;
-    let mut void: Option<File> = None;
-    for (pos, id) in disk.iter().enumerate() {
-        match id {
-            Some(id) => {
-                if let Some(v) = void {
-                    voids.push(v.clone());
-                    void = None;
-                }
-                match file {
-                    None => {
-                        file = Some(File {
-                            pos: pos,
-                            size: 1,
-                            id: *id,
-                        })
-                    }
-                    Some(ref mut f) => {
-                        if f.id == *id {
-                            f.size += 1;
-                        } else {
-                            files.push(f.clone());
-                            file = Some(File {
-                                pos: pos,
-                                size: 1,
-                                id: *id,
-                            });
-                        }
-                    }
-                }
-            }
-            None => {
-                if let Some(f) = file {
-                    files.push(f);
-                    file = None;
-                }
-                match void {
-                    None => {
-                        void = Some(File {
-                            pos: pos,
-                            id: -1,
-                            size: 1,
-                        })
-                    }
-                    Some(ref mut v) => v.size += 1,
-                }
-            }
-        }
-    }
-    if let Some(f) = file {
-        files.push(f)
-    }
-    if let Some(v) = void {
-        voids.push(v)
-    }
-    return (files, voids);
-}
-
-fn defragment(disk: &Vec<Option<i32>>) -> (Vec<File>, Vec<File>) {
-    let (mut files, mut voids) = get_files(disk);
+fn defragment(files: &mut Vec<File>, voids: &mut Vec<File>) {
     for i in (0..files.len()).rev() {
         let file = files.get_mut(i).unwrap();
         let mut void_idx: usize = 0;
@@ -94,7 +32,7 @@ fn defragment(disk: &Vec<Option<i32>>) -> (Vec<File>, Vec<File>) {
             break;
         }
     }
-    return (files, voids);
+    // return (files, voids);
 }
 
 fn compact(disk: &mut Vec<Option<i32>>) {
@@ -128,33 +66,48 @@ fn file_checksum(files: &Vec<File>) -> i64 {
     })
 }
 
-fn load_input(file: &str) -> Vec<Option<i32>> {
+fn load_input(file: &str) -> (Vec<Option<i32>>, Vec<File>, Vec<File>) {
     let input = fs::read_to_string(file).unwrap().replace("\n", "");
     let mut disk: Vec<Option<i32>> = Vec::new();
     let mut id: i32 = 0;
     let mut chars = input.chars();
+    let mut files: Vec<File> = Vec::new();
+    let mut voids: Vec<File> = Vec::new();
+    let mut pos: usize = 0;
     loop {
         if let (Some(sz), fr) = (chars.next(), chars.next()) {
             let size = sz as usize - '0' as usize;
             disk.append(&mut repeat(Some(id)).take(size).collect());
+            files.push(File {
+                pos: pos,
+                size: size,
+                id: id,
+            });
+            pos += size;
             if let Some(fr) = fr {
                 let free = fr as usize - '0' as usize;
                 disk.append(&mut repeat(None).take(free).collect());
+                voids.push(File {
+                    pos: pos,
+                    size: free,
+                    id: -1,
+                });
+                pos += free;
             }
         } else {
             break;
         }
         id += 1;
     }
-    return disk;
+    return (disk, files, voids);
 }
 
 fn main() {
-    let disk = load_input("src/day9/input.txt");
+    let (disk, mut files, mut voids) = load_input("src/day9/input.txt");
     let mut disk1 = disk.clone();
     compact(&mut disk1);
     println!("part1: {}", checksum(&disk1));
-    let (files, _) = defragment(&disk);
+    defragment(&mut files, &mut voids);
     println!("part2: {}", file_checksum(&files));
 }
 
@@ -194,31 +147,17 @@ mod tests {
     }
     #[test]
     fn check1() {
-        let mut disk = load_input("src/day9/test_input.txt");
+        let (mut disk, _, _) = load_input("src/day9/test_input.txt");
         dump(&disk);
-        let (files, voids) = get_files(&disk);
-        println!("Before compaction:\nfile: {:?}\nvoids: {:?}", files, voids);
         compact(&mut disk);
-        let (files, voids) = get_files(&disk);
-        println!("After compaction:\nfile: {:?}\nvoids: {:?}", files, voids);
         dump(&disk);
-        dump_map(&files, &voids);
         assert_eq!(checksum(&disk), 1928);
-        assert_eq!(file_checksum(&files), 1928);
     }
-
     #[test]
     fn check2() {
-        let mut disk = load_input("src/day9/test_input.txt");
-        let (files, voids) = get_files(&disk);
+        let (_, mut files, mut voids) = load_input("src/day9/test_input.txt");
         dump_map(&files, &voids);
-        println!("files: {:?}\nvoids: {:?}", files, voids);
-        let (files, voids) = defragment(&mut disk);
-        // println!(
-        //     "==== after defrag ====\nfiles: {:?}\nvoids: {:?}",
-        //     files, voids
-        // );
-        // dump_map(&files, &voids);
+        defragment(&mut files, &mut voids);
         assert_eq!(file_checksum(&files), 2858);
     }
 }
