@@ -54,9 +54,50 @@ fn blink(stones: &mut Vec<i64>) {
     }
 }
 
+fn do_stone_things(mut stone: i64, times: usize) -> usize {
+    let mut dups = 0;
+    for i in 0..times {
+        if stone == 0 {
+            stone = 1;
+            continue;
+        }
+        let pow = stone.ilog10() + 1;
+        if pow % 2 == 0 {
+            let d = 10i64.pow(pow / 2);
+            dups += 1 + do_stone_things(stone % d, times - i - 1);
+            stone = stone / d;
+            continue;
+        }
+        stone *= 2024;
+    }
+    return dups;
+}
+
 fn main() {
     let stones = load_input("src/day11/input.txt");
 
-    println!("part1: {}", multicount(stones.clone(), 20));
-    println!("part2: {}", multicount(stones.clone(), 75));
+    println!(
+        "part1: {}",
+        stones
+            .iter()
+            .fold(stones.len(), |acc, x| acc + do_stone_things(*x, 25))
+    );
+    println!(
+        "part2: {}",
+        stones
+            .iter()
+            .fold(stones.len(), |acc, x| acc + do_stone_things(*x, 75))
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn check() {
+        let s = vec![125, 17]
+            .iter()
+            .fold(2, |acc, x| acc + do_stone_things(*x, 25));
+        assert_eq!(55312, s);
+    }
 }
