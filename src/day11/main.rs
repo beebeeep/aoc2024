@@ -1,4 +1,4 @@
-use std::{fs, thread};
+use std::{collections::HashMap, fs, thread};
 
 fn load_input(file: &str) -> Vec<i64> {
     fs::read_to_string(file)
@@ -8,6 +8,7 @@ fn load_input(file: &str) -> Vec<i64> {
         .collect()
 }
 
+// this one is correct, but brute-forces it
 fn multicount(mut stones: Vec<i64>, times: usize) -> usize {
     let mut handles: Vec<_> = Vec::new();
     blink(&mut stones);
@@ -54,50 +55,57 @@ fn blink(stones: &mut Vec<i64>) {
     }
 }
 
-fn do_stone_things(mut stone: i64, times: usize) -> usize {
+fn do_stone_things(stone: i64, tips: &mut HashMap<(i64, usize), usize>, times: usize) -> usize {
+    if let Some(r) = tips.get(&(stone, times)) {
+        return *r;
+    }
+    let mut s = stone;
+
     let mut dups = 0;
     for i in 0..times {
-        if stone == 0 {
-            stone = 1;
+        if s == 0 {
+            s = 1;
             continue;
         }
-        let pow = stone.ilog10() + 1;
+        let pow = s.ilog10() + 1;
         if pow % 2 == 0 {
             let d = 10i64.pow(pow / 2);
-            dups += 1 + do_stone_things(stone % d, times - i - 1);
-            stone = stone / d;
+            dups += 1 + do_stone_things(s % d, tips, times - i - 1);
+            s = s / d;
             continue;
         }
-        stone *= 2024;
+        s *= 2024;
     }
+    tips.insert((stone, times), dups);
     return dups;
 }
 
 fn main() {
     let stones = load_input("src/day11/input.txt");
+    let mut tips: HashMap<_, _> = HashMap::new();
 
     println!(
         "part1: {}",
-        stones
-            .iter()
-            .fold(stones.len(), |acc, x| acc + do_stone_things(*x, 25))
+        stones.iter().fold(stones.len(), |acc, x| acc
+            + do_stone_things(*x, &mut tips, 25))
     );
     println!(
         "part2: {}",
-        stones
-            .iter()
-            .fold(stones.len(), |acc, x| acc + do_stone_things(*x, 75))
+        stones.iter().fold(stones.len(), |acc, x| acc
+            + do_stone_things(*x, &mut tips, 75))
     );
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn check() {
+        let mut tips: HashMap<_, _> = HashMap::new();
         let s = vec![125, 17]
             .iter()
-            .fold(2, |acc, x| acc + do_stone_things(*x, 25));
+            .fold(2, |acc, x| acc + do_stone_things(*x, &mut tips, 25));
         assert_eq!(55312, s);
     }
 }
