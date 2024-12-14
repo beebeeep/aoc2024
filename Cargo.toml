@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+entropy = "0.4.2"
+flate2 = "1.0.35"
 itertools = "0.13.0"
 permutohedron = "0.2.4"
 rand = "0.8.5"
@@ -61,3 +63,7 @@ path = "src/day12/main.rs"
 [[bin]]
 name = "day13"
 path = "src/day13/main.rs"
+
+[[bin]]
+name = "day14"
+path = "src/day14/main.rs"
