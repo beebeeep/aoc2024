@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, iter::repeat};
+use std::{fs, iter::repeat};
 
 #[derive(PartialEq, Clone, Debug)]
 struct File {

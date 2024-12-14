@@ -1,4 +1,4 @@
-use rand::{seq::SliceRandom, thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng};
 
 use std::{
     cmp::Ordering,
