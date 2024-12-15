@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+console = "0.15.8"
 entropy = "0.4.2"
 flate2 = "1.0.35"
 itertools = "0.13.0"
@@ -67,3 +68,7 @@ path = "src/day13/main.rs"
 [[bin]]
 name = "day14"
 path = "src/day14/main.rs"
+
+[[bin]]
+name = "day15"
+path = "src/day15/main.rs"
