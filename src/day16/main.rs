@@ -1,9 +1,6 @@
 use pathfinding::prelude::astar_bag;
 use pathfinding::prelude::AstarSolution;
-use std::{
-    collections::HashSet,
-    hash::Hash,
-};
+use std::{collections::HashSet, hash::Hash};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Cell {
@@ -20,17 +17,6 @@ impl Into<Cell> for char {
             'S' => Cell::Start,
             'E' => Cell::End,
             _ => Cell::Empty,
-        }
-    }
-}
-
-impl From<Cell> for char {
-    fn from(t: Cell) -> char {
-        match t {
-            Cell::Wall => '#',
-            Cell::Start => 'S',
-            Cell::End => 'E',
-            _ => '.',
         }
     }
 }
