@@ -45,22 +45,11 @@ impl Computer {
             _ => Err("invalid opcode"),
         }
     }
-    fn dump_prog(&self) {
-        let mut i = 0;
-        while i < self.prog.len() - 1 {
-            println!(
-                "{} {};",
-                OPCODES[self.prog[i] as usize],
-                OPERANDS[self.prog[i + 1] as usize]
-            );
-            i += 2;
-        }
-    }
 
     fn step(&mut self, opcode: u64, operand: u64) -> Result<(), &'static str> {
         let mut inc_ip = true;
         match opcode {
-            /* adv */ 0 => self.a = self.a / 2u64.pow(self.combo_operand(operand)? as u32),
+            /* adv */ 0 => self.a = self.a >> self.combo_operand(operand)?,
             /* bxl */ 1 => self.b = self.b ^ operand,
             /* bst */ 2 => self.b = self.combo_operand(operand)? % 8,
             /* jnz */
@@ -72,8 +61,8 @@ impl Computer {
             }
             /* bxc */ 4 => self.b = self.b ^ self.c,
             /* out */ 5 => self.out.push(self.combo_operand(operand)? % 8),
-            /* bdv */ 6 => self.b = self.a / 2u64.pow(self.combo_operand(operand)? as u32),
-            /* cdv */ 7 => self.c = self.a / 2u64.pow(self.combo_operand(operand)? as u32),
+            /* bdv */ 6 => self.b = self.a >> self.combo_operand(operand)?,
+            /* cdv */ 7 => self.c = self.a >> self.combo_operand(operand)?,
             /* nop */ _ => return Err("invalid opcode"),
         };
         if inc_ip {
@@ -95,42 +84,6 @@ impl Computer {
         }
         return None;
     }
-
-    fn check_quine(&mut self, limit: usize) -> bool {
-        for _step in 0..limit {
-            if self.ip >= self.prog.len() - 1 {
-                break;
-            }
-            let opcode = self.prog[self.ip];
-            let operand = self.prog[self.ip + 1];
-            if let Err(_) = self.step(opcode, operand) {
-                return false;
-            }
-        }
-        if self.prog == self.out {
-            return true;
-        }
-        return false;
-    }
-}
-
-fn try_find(mut comp: Computer, r: RangeInclusive<u64>) -> Option<u64> {
-    let rs = format!("{:?}", r);
-    println!("range {rs} started");
-    for a in r {
-        // reset the state
-        comp.a = a;
-        comp.b = 0;
-        comp.c = 0;
-        comp.ip = 0;
-        comp.out.truncate(0);
-
-        if comp.check_quine(comp.prog.len() * comp.prog.len()) {
-            println!("found!!! {a}");
-            return Some(a);
-        }
-    }
-    return None;
 }
 
 fn find_a(orig: &Computer) -> u64 {
@@ -159,26 +112,9 @@ fn find_a(orig: &Computer) -> u64 {
     return a;
 }
 
-// that'll take around 16 thousands years
-fn brute_force(comp: &Computer) {
-    let mut handles = Vec::new();
-    let step = (u64::MAX / 16) as u64;
-    for i in 0..16 {
-        let c = comp.clone();
-        let r = step * i..=step * (i + 1);
-        handles.push(thread::spawn(move || try_find(c, r)));
-    }
-    for h in handles {
-        if let Some(v) = h.join().unwrap() {
-            println!("part2: {v}");
-            return;
-        }
-    }
-}
-
 fn main() {
     let input = include_str!("input.txt");
-    let mut comp = Computer::new(input);
+    let comp = Computer::new(input);
 
     let out = comp.clone().run(1000).unwrap();
     println!(
@@ -188,24 +124,5 @@ fn main() {
             .collect::<Vec<String>>()
             .join(",")
     );
-    // brute_force(&comp);
     println!("part2: {}", find_a(&comp));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn check1() {
-        let input = include_str!("test_input.txt");
-        let mut comp = Computer::new(input);
-        assert_eq!(Some(117440), try_find(comp, 0..=1000000));
-    }
-
-    #[test]
-    fn check2() {
-        let input = include_str!("input.txt");
-        let mut comp = Computer::new(input);
-        comp.dump_prog();
-    }
 }
