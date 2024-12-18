@@ -1,10 +1,3 @@
-use pathfinding::prelude::astar_bag;
-use pathfinding::prelude::AstarSolution;
-use std::ops::BitAndAssign;
-use std::ops::Range;
-use std::ops::RangeInclusive;
-use std::thread;
-use std::{collections::HashSet, hash::Hash};
 
 const OPCODES: [&'static str; 8] = ["adv", "bxl", "bst", "jnz", "bxc", "out", "bdv", "cdv"];
 const OPERANDS: [&'static str; 8] = ["0", "1", "2", "3", "A", "B", "C", "7"];

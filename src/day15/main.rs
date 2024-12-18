@@ -1,8 +1,6 @@
 use std::{
     collections::HashSet,
-    fmt,
     hash::Hash,
-    io::{stdin, Empty, Read},
     thread::sleep,
     time,
 };
@@ -171,7 +169,7 @@ fn move_robot(
     map: &mut Vec<Vec<Cell>>,
     moves: &Vec<Dir>,
     robot_pos: &mut Dir,
-    mut interactive: bool,
+    interactive: bool,
 ) {
     let term = Term::stdout();
     term.clear_screen();
