@@ -2,7 +2,6 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader},
-    ops::Index,
 };
 
 type Dir = (i32, i32);
@@ -49,57 +48,42 @@ fn get_regions(map: &Vec<Vec<Plot>>) -> HashMap<i32, Vec<&Plot>> {
     return regions;
 }
 
+fn find_fence(p: &Plot, region: &Vec<&Plot>, d: &Dir, fd: &Dir) -> bool {
+    region
+        .iter()
+        .find(|x| x.r == p.r + d.0 && x.c == p.c + d.1 && x.fences.contains(fd))
+        .is_some()
+}
+
 fn count_sides(region: &Vec<&Plot>) -> usize {
     let mut angles = 0;
-    for plot in region {
-        if (plot.fences.contains(&UP) || plot.fences.contains(&DOWN))
-            && (plot.fences.contains(&LEFT) || plot.fences.contains(&RIGHT))
-        {
-            // 90deg angles
+    for p in region {
+        if p.fences.contains(&UP) && p.fences.contains(&RIGHT) {
             angles += 1;
         }
-        if plot.fences.len() == 0 {
-            // TODO: check 270deg angles
+        if p.fences.contains(&UP) && p.fences.contains(&LEFT) {
+            angles += 1;
+        }
+        if p.fences.contains(&DOWN) && p.fences.contains(&RIGHT) {
+            angles += 1;
+        }
+        if p.fences.contains(&DOWN) && p.fences.contains(&LEFT) {
+            angles += 1;
+        }
+        if find_fence(p, region, &UP, &RIGHT) && find_fence(p, region, &RIGHT, &UP) {
+            angles += 1;
+        }
+        if find_fence(p, region, &UP, &LEFT) && find_fence(p, region, &LEFT, &UP) {
+            angles += 1
+        }
+        if find_fence(p, region, &DOWN, &RIGHT) && find_fence(p, region, &RIGHT, &DOWN) {
+            angles += 1
+        }
+        if find_fence(p, region, &DOWN, &LEFT) && find_fence(p, region, &LEFT, &DOWN) {
+            angles += 1
         }
     }
     return angles;
-}
-
-fn count_sides2(region: &i32, map: &Vec<Vec<Plot>>) -> usize {
-    let mut xs = 0;
-    // vertical sides
-    let mut inside = false;
-    for r in 0..map.len() {
-        for c in 0..map[r].len() {
-            if !inside && map[r][c].region_id == *region {
-                inside = true;
-                xs += 1;
-            } else if inside && map[r][c].region_id != *region {
-                inside = false;
-                xs += 1;
-            }
-        }
-    }
-    if inside {
-        xs += 1;
-    }
-    inside = false;
-    // horizontal sides
-    for c in 0..map[0].len() {
-        for r in 0..map.len() {
-            if !inside && map[r][c].region_id == *region {
-                inside = true;
-                xs += 1;
-            } else if inside && map[r][c].region_id != *region {
-                inside = false;
-                xs += 1;
-            }
-        }
-    }
-    if inside {
-        xs += 1;
-    }
-    return xs / 2;
 }
 
 fn get_price(map: &Vec<Vec<Plot>>) -> usize {
@@ -111,7 +95,7 @@ fn get_price(map: &Vec<Vec<Plot>>) -> usize {
 
 fn get_discounted_price(map: &Vec<Vec<Plot>>) -> usize {
     let regions = get_regions(map);
-    regions.iter().fold(0, |acc, (id, region)| {
+    regions.iter().fold(0, |acc, (_, region)| {
         acc + region.len() * count_sides(region)
     })
 }
@@ -176,13 +160,11 @@ fn main() {
     let mut map = load_input("src/day12/input.txt");
     analyze(&mut map);
     println!("part1: {}", get_price(&map));
-    println!("part1: {}", get_discounted_price(&map));
+    println!("part2: {}", get_discounted_price(&map));
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, hash::Hash};
-
     use super::*;
 
     fn dump(map: &Vec<Vec<Plot>>) {
@@ -220,6 +202,7 @@ mod tests {
         analyze(&mut map);
         dump(&map);
         assert_eq!(1930, get_price(&map));
+        assert_eq!(1206, get_discounted_price(&map));
     }
 
     #[test]
