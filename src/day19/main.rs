@@ -1,9 +1,6 @@
-use core::time;
 use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
+    collections::HashMap,
     sync::{Arc, RwLock},
-    thread,
 };
 
 use rayon::prelude::*;

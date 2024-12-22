@@ -8,6 +8,7 @@ console = "0.15.8"
 entropy = "0.4.2"
 flate2 = "1.0.35"
 itertools = "0.13.0"
+memoize = "0.4.2"
 pathfinding = "4.12.0"
 permutohedron = "0.2.4"
 rand = "0.8.5"
@@ -95,3 +96,7 @@ path = "src/day19/main.rs"
 [[bin]]
 name = "day20"
 path = "src/day20/main.rs"
+
+[[bin]]
+name = "day21"
+path = "src/day21/main.rs"
